@@ -1,19 +1,152 @@
-<mujoco>
+<mujoco model="kidsize_soccer_field">
 
   <option timestep="0.01" iterations="50" tolerance="1e-10"
           solver="Newton" jacobian="dense" cone="pyramidal"/>
 
   <include file="robots/Booster-K1/models/K1_serial.xml"/>
-  <include file="includes/field.xml"/>
 
   <visual>
     <headlight diffuse="0.6 0.6 0.6" ambient="0.3 0.3 0.3" specular="0 0 0"/>
     <rgba haze="0.15 0.25 0.35 1"/>
     <global azimuth="120" elevation="-20"/>
   </visual>
-  
+
+  <asset>
+    <material name="soccer_field_mat" rgba="0.2 0.8 0.2 1"/>
+    <material name="line_mat" rgba="1 1 1 1"/>
+    <material name="goal_mat" rgba="0.8 0.8 0.8 1"/>
+  </asset>
+
   <worldbody>
-    <light pos="0 0 1.5" dir="0 0 -1" directional="true"/>
+    <light pos="0 0 3" dir="0 0 -1" directional="true"/>
+
+    <!-- A - Field length (9m), B - Field width (6m) -->
+    <geom name="soccer_field" type="box"
+          size="5 3.5 0.01" pos="0 0 0"
+          material="soccer_field_mat"
+          condim="3" friction="0.8 0.1 0.1"/>
+
+    <!-- FIELD LINES (Border strip width: 1m) -->
+    
+    <!-- Sidelines (touchlines) -->
+    <geom name="sideline_left" type="box"
+          size="4.5 0.025 0.005" pos="0 3.0 0.015"
+          material="line_mat"/>
+    <geom name="sideline_right" type="box"
+          size="4.5 0.025 0.005" pos="0 -3.0 0.015"
+          material="line_mat"/>
+
+    <!-- Goal lines -->
+    <geom name="goal_line_own" type="box"
+          size="0.025 3.0 0.005" pos="-4.5 0 0.015"
+          material="line_mat"/>
+    <geom name="goal_line_opponent" type="box"
+          size="0.025 3.0 0.005" pos="4.5 0 0.015"
+          material="line_mat"/>
+
+      <!-- Center line -->
+      <geom name="center_line" type="box"
+            size="0.025 3.0 0.005" pos="0 0 0.015"
+            material="line_mat"/>
+
+      <!-- H - Centre circle diameter (1.5m) -->
+      <geom name="centre_circle_outer" type="cylinder"
+            size="0.75 0.002" pos="0 0 0.015"
+            material="line_mat" contype="0" conaffinity="0"/>
+      <geom name="centre_circle_inner" type="cylinder"
+            size="0.70 0.003" pos="0 0 0.015"
+            material="soccer_field_mat" contype="0" conaffinity="0"/>
+
+    <!-- Center mark -->
+      <geom name="center mark" type="box"
+          size="0.05 0.025 0.005" pos="0.0 0 0.015"
+          material="line_mat"/>
+    <!-- J - Penalty area length (2m), K - Penalty area width (3m) -->
+    
+    <!-- Own penalty area -->
+    <geom name="penalty_area_own_top" type="box"
+          size="1.0 0.025 0.005" pos="-3.5 2.5 0.015"
+          material="line_mat"/>
+    <geom name="penalty_area_own_bottom" type="box"
+          size="1.0 0.025 0.005" pos="-3.5 -2.5 0.015"
+          material="line_mat"/>
+    <geom name="penalty_area_own_line" type="box"
+          size="0.025 2.5 0.005" pos="-2.5 0 0.015"
+          material="line_mat"/>
+    
+    <!-- Opponent penalty area -->
+    <geom name="penalty_area_opp_top" type="box"
+          size="1.0 0.025 0.005" pos="3.5 2.5 0.015"
+          material="line_mat"/>
+    <geom name="penalty_area_opp_bottom" type="box"
+          size="1.0 0.025 0.005" pos="3.5 -2.5 0.015"
+          material="line_mat"/>
+    <geom name="penalty_area_opp_line" type="box"
+          size="0.025 2.5 0.005" pos="2.5 0 0.015"
+          material="line_mat"/>
+
+    <!-- I - Penalty mark distance (1.5m) -->
+    <geom name="penalty_mark_own_h" type="box"
+          size="0.025 0.0125 0.005" pos="-3.0 0 0.015"
+          material="line_mat"/>
+    <geom name="penalty_mark_own_v" type="box"
+          size="0.0125 0.025 0.005" pos="-3.0 0 0.015"
+          material="line_mat"/>
+    <geom name="penalty_mark_opp_h" type="box"
+          size="0.025 0.0125 0.005" pos="3.0 0 0.015"
+          material="line_mat"/>
+    <geom name="penalty_mark_opp_v" type="box"
+          size="0.0125 0.025 0.005" pos="3.0 0 0.015"
+          material="line_mat"/>
+
+    <!-- F - Goal area length (1m), G - Goal area width (2m) -->
+    
+    <!-- Own goal area -->
+    <geom name="goal_area_own_top" type="box"
+          size="0.5 0.025 0.005" pos="-4.0 1.5 0.015"
+          material="line_mat"/>
+    <geom name="goal_area_own_bottom" type="box"
+          size="0.5 0.025 0.005" pos="-4.0 -1.5 0.015"
+          material="line_mat"/>
+    <geom name="goal_area_own_line" type="box"
+          size="0.025 1.5 0.005" pos="-3.5 0 0.015"
+          material="line_mat"/>
+    
+    <!-- Opponent goal area -->
+    <geom name="goal_area_opp_top" type="box"
+          size="0.5 0.025 0.005" pos="4.0 1.5 0.015"
+          material="line_mat"/>
+    <geom name="goal_area_opp_bottom" type="box"
+          size="0.5 0.025 0.005" pos="4.0 -1.5 0.015"
+          material="line_mat"/>
+    <geom name="goal_area_opp_line" type="box"
+          size="0.025 1.5 0.005" pos="3.5 0 0.015"
+          material="line_mat"/>
+
+    <!-- C - Goal depth (0m), D - Goal width (2.6m), E - Goal height (1.2m) -->
+    
+    <!-- Own goal -->
+    <geom name="goal_post_own_left" type="cylinder"
+          size="0.05 0.6" pos="-4.5 1.3 0.6"
+          material="goal_mat"/>
+    <geom name="goal_post_own_right" type="cylinder"
+          size="0.05 0.6" pos="-4.5 -1.3 0.6"
+          material="goal_mat"/>
+    <geom name="goal_crossbar_own" type="cylinder"
+          size="0.05" fromto="-4.5 -1.3 1.2 -4.5 1.3 1.2"
+          material="goal_mat"/>
+
+    <!-- Opponent goal -->
+    <geom name="goal_post_opp_left" type="cylinder"
+          size="0.05 0.6" pos="4.5 1.3 0.6"
+          material="goal_mat"/>
+    <geom name="goal_post_opp_right" type="cylinder"
+          size="0.05 0.6" pos="4.5 -1.3 0.6"
+          material="goal_mat"/>
+    <geom name="goal_crossbar_opp" type="cylinder"
+          size="0.05" fromto="4.5 -1.3 1.2 4.5 1.3 1.2"
+          material="goal_mat"/>
+
   </worldbody>
 
 </mujoco>

@@ -1,0 +1,153 @@
+/* Custom color scheme for SPQR Team */
+:root {
+  /* Primary colors (header, navigation) */
+  --md-primary-fg-color:        #822433;  /* Blue header */
+  --md-primary-fg-color--light: #822433;  /* Lighter blue */
+  --md-primary-fg-color--dark:  #822433;  /* Darker blue */
+
+  /* Accent colors (links, buttons) */
+  --md-accent-fg-color:         #a34454;  /* Accent color */
+  --md-accent-fg-color--light:  rgb(199, 103, 119);  /* Lighter accent color */
+  --md-accent-fg-color--dark:   #691523;  /* Darker accent color */
+
+  /* Background colors */
+  --md-default-bg-color:        #ffffff;  /* Main background */
+  --md-default-fg-color:        #000000;  /* Main text */
+  --md-default-fg-color--light: #757575;  /* Secondary text */
+  --md-default-fg-color--lighter: #9e9e9e; /* Tertiary text */
+
+  /* Code block colors */
+  --md-code-bg-color:           #f5f5f5;  /* Code background */
+  --md-code-fg-color:           #37474f;  /* Code text */
+}
+
+/* Dark mode colors */
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color:        #822433;  /* Blue header for dark mode */
+  --md-primary-fg-color--light: #822433;
+  --md-primary-fg-color--dark:  #822433;
+
+  --md-accent-fg-color:         #bb5768;  /* Accent color for dark mode */
+  --md-accent-fg-color--light:  #d66f81;  /* Lighter accent color for dark mode*/
+  --md-accent-fg-color--dark:   #9b3f4e;  /* Darker accent color for dark mode*/
+
+  --md-default-bg-color:        #262323;  /* Dark background */
+  --md-default-fg-color:        #ffffff;  /* Light text */
+  --md-default-fg-color--light: #aaaaaa;
+  --md-default-fg-color--lighter: #888888;
+
+  --md-code-bg-color:           #2e2e2e;
+  --md-code-fg-color:           #e0e0e0;
+}
+
+/* Custom header styling */
+.md-header {
+  background: linear-gradient(45deg, var(--md-primary-fg-color), var(--md-primary-fg-color--light));
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  height: 80px;
+  display: flex;
+  align-items: center;
+}
+
+/* Move color palette toggle to the far right */
+.md-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 100%;
+}
+
+.md-header__button.md-logo img,
+.md-header__button.md-logo svg {
+  height: 3rem;
+  width: auto;
+}
+
+/* Make title bigger */
+.md-header__title {
+  font-size: 1.2rem;
+}
+
+.md-header__title .md-header__title__text {
+  font-size: inherit;
+}
+
+.md-header__topic {
+  flex-grow: 1;
+}
+
+.md-header__option {
+  margin-left: auto;
+  order: 10;
+}
+
+/* Ensure the search and palette buttons are on the right */
+.md-header__button[for="__search"] {
+  order: 8;
+}
+
+.md-header__button[for="__palette"] {
+  order: 9;
+  margin-left: 0.5rem;
+}
+
+/* Custom navigation styling */
+.md-nav__item--active > .md-nav__link {
+  color: var(--md-accent-fg-color);
+  font-weight: 600;
+}
+
+/* Custom button styling */
+.md-button {
+  background-color: var(--md-accent-fg-color);
+  border-color: var(--md-accent-fg-color);
+}
+
+.md-button:hover {
+  background-color: var(--md-accent-fg-color--dark);
+  border-color: var(--md-accent-fg-color--dark);
+}
+
+/* Custom bold/strong text styling */
+strong, b {
+  color: var(--md-accent-fg-color);
+  font-weight: 600;
+}
+
+/* Ensure bold text in content uses accent color */
+.md-content strong,
+.md-content b,
+.md-content a {
+  color: var(--md-accent-fg-color);
+}
+
+.md-content a:hover {
+  color: var(--md-accent-fg-color--light);
+}
+
+/* Custom footer styling */
+.md-footer {
+  background-color: var(--md-primary-fg-color);
+  color: #ffffff;
+}
+
+.md-footer__inner {
+  background-color: var(--md-primary-fg-color);
+}
+
+.md-footer__link {
+  color: #ffffff;
+}
+
+.md-footer__link:hover {
+  color: var(--md-accent-fg-color--light);
+}
+
+.md-footer__title {
+  color: #ffffff;
+}
+
+.md-footer__direction {
+  color: #ffffff;
+}

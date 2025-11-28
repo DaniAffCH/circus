@@ -5,21 +5,21 @@ ball:
 
 teams:
   red:
-    - type: Booster-K1
-      number: 1
-      position: [-3.0, 0.0, 0.7]
-      orientation: [0.0, 0.0, 0.0]
+    # - type: Booster-K1
+    #   number: 1
+    #   position: [-3.0, 0.0, 0.7]
+    #   orientation: [0.0, 0.0, 0.0]
     - type: Booster-T1
       number: 3
       position: [-1.0, 0.0, 0.7]
       orientation: [0.0, 0.0, 0.0]
 
-  blue:
-    - type: Booster-K1
-      number: 1
-      position: [3.0, 0.0, 0.7]
-      orientation: [0.0, 0.0, 3.14]
-    - type: Booster-T1
-      number: 3
-      position: [1.0, 0.0, 0.7]
-      orientation: [0.0, 0.0, 3.14]
+  # blue:
+  #   - type: Booster-K1
+  #     number: 1
+  #     position: [3.0, 0.0, 0.7]
+  #     orientation: [0.0, 0.0, 3.14]
+  #   - type: Booster-T1
+  #     number: 3
+  #     position: [1.0, 0.0, 0.7]
+  #     orientation: [0.0, 0.0, 3.14]

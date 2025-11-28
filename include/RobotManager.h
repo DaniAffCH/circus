@@ -184,9 +184,46 @@ class RobotManager {
                     if (fds[i].fd == server_fd) {
                         // The only event for the server is someone knocking
                         int client_fd = accept(server_fd, nullptr, nullptr);
-                        if (client_fd >= 0)
+                        if (client_fd >= 0){
                             fds.push_back({client_fd, POLLIN, 0});
-                    } else {
+                                         
+                            // MANDA MESSAGGIO INIZIALE
+                            char buffer[MAX_MSG_SIZE];
+                            int n = read(client_fd, buffer, sizeof(buffer) - 1);
+
+                            if (n <= 0) {
+                                std::cerr << "Errore nella lettura del messaggio iniziale.\n";
+                                // close(client_fd);
+                                continue;
+                            }
+
+                            // unpack del messaggio MsgPack
+                            msgpack::object_handle oh = msgpack::unpack(buffer, n);
+                            msgpack::object obj = oh.get();
+
+                            // --- DEVE ESSERE UNA STRINGA ---
+                            if (obj.type != msgpack::type::STR) {
+                                std::cerr << "Primo messaggio non è una stringa! Ignoro.\n";
+                                continue;
+                            }
+
+                            std::string robotName = obj.as<std::string>();
+                            std::cout << "Robot connesso: " << robotName << "\n";
+
+                            // Manda risposta con valori iniziali
+                            for (auto& r : robots_) {
+                                if (r->name == robotName) {
+                                    std::cout << "Invio messaggio iniziale a " << robotName << std::endl;
+                                    auto answ = r->sendMessage();
+                                    msgpack::sbuffer sbuf;
+                                    msgpack::pack(sbuf, answ);
+                                    send(client_fd, sbuf.data(), sbuf.size(), 0);
+                                    break;
+                                }
+                            }
+                        }
+                    } 
+                    else {
                         // The events for other fds indicate either an incoming message or a closed connection
                         // the read call disambiguates the two cases
                         char buffer[MAX_MSG_SIZE];

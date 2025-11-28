@@ -94,10 +94,10 @@ string SceneParser::buildMuJoCoXml() {
     xml_node option = mujoco.append_child("option");
     option.append_attribute("timestep") = "0.01";
     option.append_attribute("iterations") = "50";
-    option.append_attribute("tolerance") = "1e-10";
+    option.append_attribute("tolerance") = "1e-6";
     option.append_attribute("solver") = "Newton";
     option.append_attribute("jacobian") = "dense";
-    option.append_attribute("cone") = "pyramidal";
+    option.append_attribute("cone") = "elliptic";
 
     xml_node compiler = mujoco.append_child("compiler");
     compiler.append_attribute("angle") = "radian";

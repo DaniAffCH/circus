@@ -1,4 +1,7 @@
-image: ubuntu:22.04
+image: ros:humble-ros-base
 volumes:
-  - "/home/daniaffch/Dev/spqrbooster2026/src/SimBridge/bridge/build:/app/BridgeSubscriber"
-  - "/home/daniaffch/Dev/spqrbooster2026/src/SimBridge/fake_framework/build:/app/fake_framework"
+  - "/home/flavio/Scrivania/RoboCup/spqrbooster2026/src/SimBridge/bridge_colcon/install:/app/bridge_colcon"
+  - "/home/flavio/Scrivania/Esperimenti_Booster/isaac/pippo:/app/pippo"
+  - "/home/flavio/Scrivania/RoboCup/spqrbooster2026/src/SimBridge/bridge_ros/build:/app/bridge_ros"
+  - "/home/flavio/Scrivania/RoboCup/spqrbooster2026/src/SimBridge/ros_dummy/build:/app/ros_dummy"
+  

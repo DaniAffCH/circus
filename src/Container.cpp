@@ -70,12 +70,25 @@ void Container::create(const std::string& robot_name, const std::string& image,
     nlohmann::json payload;
     payload["Image"] = image;
 
-    // Forcing networkMode to host is necessary to establish a communication between simulator and docker
-    // container.
-    payload["HostConfig"] = {{"NetworkMode", "host"}, {"Binds", binds}};
+    // Add host library paths to binds
+    std::vector<std::string> all_binds = binds;
+    all_binds.push_back("/usr/lib/x86_64-linux-gnu:/host/usr/lib/x86_64-linux-gnu:ro");
+    all_binds.push_back("/lib/x86_64-linux-gnu:/host/lib/x86_64-linux-gnu:ro");
 
-    payload["Env"]
-        = {"ROBOT_NAME=" + robot_name, "CIRCUS_PORT=" + std::to_string(frameworkCommunicationPort)};
+    payload["HostConfig"] = {
+        {"Binds", all_binds},
+        {"CapAdd", {"SYS_NICE"}}
+    };
+
+    payload["Env"] = {
+        "ROBOT_NAME=" + robot_name, 
+        "SERVER_IP=172.17.0.1",
+        "CIRCUS_PORT=" + std::to_string(frameworkCommunicationPort),
+        "LD_LIBRARY_PATH=/app/pippo/lib:/app/pippo/lib-usr-local:/app/pippo/lib-x86_64-linux-gnu:/host/usr/lib/x86_64-linux-gnu:/host/lib/x86_64-linux-gnu"
+    };
+
+    payload["Tty"] = true;
+    payload["OpenStdin"] = true;
 
     std::string endpoint = create_container_endpoint(name);
     std::string resp_raw = request(POST, endpoint, CREATE_OK_RESPONSE, &payload);

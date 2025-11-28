@@ -68,6 +68,32 @@ class BoosterT1 : public Robot {
         imu = new Imu(mujCtx->model, mujCtx->data, (name + "_linear-acceleration").c_str(),
                       (name + "_angular-velocity").c_str());
         joints = new Joints(mujCtx->model, mujCtx->data, joint_map);
+        // Set initial joint positions
+        joints->set_position({
+            {JointValue::HEAD_YAW, -0.000325507},
+            {JointValue::HEAD_PITCH, -0.201966},
+            {JointValue::SHOULDER_LEFT_PITCH, 0.529404},
+            {JointValue::SHOULDER_LEFT_ROLL, -1.39168},
+            {JointValue::ELBOW_LEFT_PITCH, 0.00218429},
+            {JointValue::ELBOW_LEFT_YAW, -1.49212},
+            {JointValue::SHOULDER_RIGHT_PITCH, 0.529381},
+            {JointValue::SHOULDER_RIGHT_ROLL, 1.39151},
+            {JointValue::ELBOW_RIGHT_PITCH, 0.00180258},
+            {JointValue::ELBOW_RIGHT_YAW, 1.492},
+            {JointValue::WAIST, -0.000427851},
+            {JointValue::HIP_LEFT_PITCH, -0.36283},
+            {JointValue::HIP_LEFT_ROLL, 0.000165052},
+            {JointValue::HIP_LEFT_YAW, -0.000309125},
+            {JointValue::KNEE_LEFT_PITCH, 0.756038},
+            {JointValue::ANKLE_LEFT_PITCH, -0.430738},
+            {JointValue::ANKLE_LEFT_ROLL, 3.47368e-07},
+            {JointValue::HIP_RIGHT_PITCH, -0.363371},
+            {JointValue::HIP_RIGHT_ROLL, -0.000158362},
+            {JointValue::HIP_RIGHT_YAW, 0.000328141},
+            {JointValue::KNEE_RIGHT_PITCH, 0.755694},
+            {JointValue::ANKLE_RIGHT_PITCH, -0.430738},
+            {JointValue::ANKLE_RIGHT_ROLL, 8.58935e-08}
+        });
         cameras[0] = new Camera(mujCtx, (name + "_left_cam").c_str());
         cameras[1] = new Camera(mujCtx, (name + "_right_cam").c_str());
     }

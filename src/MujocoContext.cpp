@@ -24,7 +24,7 @@ MujocoContext::MujocoContext(const std::string& xmlString) {
     }
 
     data = mj_makeData(model);
-
+    
     mjv_defaultOption(&opt);
     mjv_defaultCamera(&cam);
     mjv_makeScene(model, &scene, 10000);

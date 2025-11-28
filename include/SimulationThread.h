@@ -12,6 +12,8 @@ class SimulationThread : public QThread {
     SimulationThread(const mjModel* model, mjData* data);
     void run() override;
     void stop();
+    bool isRunning() const;
+    void setRunning(bool b);
 
    private:
     const mjModel* model_;

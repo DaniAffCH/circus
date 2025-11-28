@@ -21,6 +21,23 @@ AppWindow::AppWindow(int& argc, char** argv) {
     resize(spqr::initialWindowWidth, spqr::initialWindowHeight);
     setWindowTitle(spqr::appName);
 
+    controlToolbar = new QToolBar("Simulation Controls", this);
+    addToolBar(Qt::TopToolBarArea, controlToolbar);
+
+    startAction = new QAction("Start", this);
+    stopAction = new QAction("Stop", this);
+    stepAction = new QAction("Step", this);
+
+    controlToolbar->addAction(startAction);
+    controlToolbar->addAction(stopAction);
+    controlToolbar->addAction(stepAction);
+
+    connect(startAction, &QAction::triggered, this, &AppWindow::startSimulation);
+    connect(stopAction, &QAction::triggered, this, &AppWindow::stopSimulation);
+    connect(stepAction, &QAction::triggered, this, &AppWindow::stepSimulation);
+
+
+
     QWidget* centralWidget = new QWidget;
     mainLayout = new QVBoxLayout;
     centralWidget->setLayout(mainLayout);
@@ -81,11 +98,33 @@ void AppWindow::loadScene(const QString& yamlFile) {
         mainLayout->addWidget(viewportContainer);
 
         sim = std::make_unique<SimulationThread>(mujContext->model, mujContext->data);
-        sim->start();
+        // sim->start();
     } catch (const std::exception& e) {
         QMessageBox::critical(this, "Error loading scene", e.what());
     }
 }
+
+void AppWindow::startSimulation() {
+    if (sim && !sim->isRunning()) {
+        sim = std::make_unique<SimulationThread>(mujContext->model, mujContext->data);
+        sim->start();
+    }
+}
+
+void AppWindow::stopSimulation() {
+    if (sim && sim->isRunning()) {
+        sim->stop();
+    }
+}
+
+void AppWindow::stepSimulation() {
+    if (mujContext) {
+        mj_step(mujContext->model, mujContext->data);
+        viewport->update();  // Se necessario, forza il repaint
+    }
+}
+
+
 
 void AppWindow::signalHandler(int signal) {
     TeamManager::instance().clear();

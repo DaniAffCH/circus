@@ -40,32 +40,44 @@ ApplicationWindow {
         }
     }
 
-    RowLayout {
+    ColumnLayout {
         anchors.fill: parent
         spacing: 0
 
-        // Left Team Panel
-        TeamPanel {
-            id: leftPanel
-            side: "left"
-            teamName: "Team 1"
-            teamRobots: appWindow.teams.length > 0 ? appWindow.teams[0].robots : []
-        }
-
-        // Center - Viewport Container
-        Item {
-            id: viewportContainer
-            objectName: "viewportContainer"
+        // Top Row with Team Panels and Viewport
+        RowLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
+            spacing: 0
+
+            // Left Team Panel
+            TeamPanel {
+                id: leftPanel
+                side: "left"
+                teamName: "Team 1"
+                teamRobots: appWindow.teams.length > 0 ? appWindow.teams[0].robots : []
+            }
+
+            // Center - Viewport Container
+            Item {
+                id: viewportContainer
+                objectName: "viewportContainer"
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+            }
+
+            // Right Team Panel
+            TeamPanel {
+                id: rightPanel
+                side: "right"
+                teamName: "Team 2"
+                teamRobots: appWindow.teams.length > 1 ? appWindow.teams[1].robots : []
+            }
         }
 
-        // Right Team Panel
-        TeamPanel {
-            id: rightPanel
-            side: "right"
-            teamName: "Team 2"
-            teamRobots: appWindow.teams.length > 1 ? appWindow.teams[1].robots : []
+        // Bottom Tools Panel
+        ToolsPanel {
+            id: toolsPanel
         }
     }
 }

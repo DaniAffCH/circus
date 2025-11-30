@@ -17,6 +17,56 @@ Rectangle {
     property var columnWidths: [0.25, 0.25, 0.25, 0.25]
     property var rowHeights: [1.0]
 
+    // Teams data
+    property var teams: []
+    property var dataStreamOptions: buildDataStreamOptions()
+
+    // Build list of available data streams from all robots
+    function buildDataStreamOptions() {
+        var options = []
+
+        for (var teamIdx = 0; teamIdx < teams.length; teamIdx++) {
+            var team = teams[teamIdx]
+            if (!team || !team.robots) continue
+
+            var teamName = "Team " + (teamIdx + 1)
+
+            for (var robotIdx = 0; robotIdx < team.robots.length; robotIdx++) {
+                var robot = team.robots[robotIdx]
+                if (!robot) continue
+
+                var robotPrefix = teamName + " - " + robot.name + " (R" + robot.number + ")"
+
+                // Add IMU data streams if available
+                if (robot.imu) {
+                    if (robot.imu.linearAcceleration) {
+                        options.push(robotPrefix + " - IMU Linear Acceleration")
+                    }
+                    if (robot.imu.angularVelocity) {
+                        options.push(robotPrefix + " - IMU Angular Velocity")
+                    }
+                }
+
+                // Add Pose data streams
+                if (robot.pose) {
+                    if (robot.pose.position) {
+                        options.push(robotPrefix + " - Pose Position")
+                    }
+                    if (robot.pose.orientation) {
+                        options.push(robotPrefix + " - Pose Orientation")
+                    }
+                }
+            }
+        }
+
+        return options
+    }
+
+    // Rebuild options when teams change
+    onTeamsChanged: {
+        dataStreamOptions = buildDataStreamOptions()
+    }
+
     Layout.fillWidth: true
     Layout.preferredHeight: collapsedHeight
     color: "#262525"
@@ -257,11 +307,132 @@ Rectangle {
                                         border.width: 1
                                         radius: 2
 
-                                        Label {
-                                            anchors.centerIn: parent
-                                            text: "Cell [" + rowContainer.rowIndex + "," + cellContainer.colIndex + "]"
-                                            font.pixelSize: 11
-                                            color: "#aaaaaa"
+                                        ColumnLayout {
+                                            anchors.fill: parent
+                                            anchors.margins: 5
+                                            spacing: 5
+
+                                            Label {
+                                                Layout.alignment: Qt.AlignHCenter
+                                                text: "Cell [" + rowContainer.rowIndex + "," + cellContainer.colIndex + "]"
+                                                font.pixelSize: 10
+                                                color: "#888888"
+                                            }
+
+                                            ComboBox {
+                                                id: dataStreamCombo
+                                                Layout.fillWidth: true
+                                                Layout.preferredHeight: 30
+                                                Layout.alignment: Qt.AlignVCenter
+                                                editable: true
+
+                                                model: toolsPanel.dataStreamOptions
+
+                                                background: Rectangle {
+                                                    color: parent.pressed ? "#2a2a2a" : (parent.hovered ? "#4a4a4a" : "#464545")
+                                                    border.color: parent.activeFocus ? "#5c8dbd" : "#555555"
+                                                    border.width: 1
+                                                    radius: 2
+                                                }
+
+                                                contentItem: Item {
+                                                    Text {
+                                                        anchors.fill: parent
+                                                        leftPadding: 8
+                                                        rightPadding: dataStreamCombo.indicator.width + 8
+                                                        text: dataStreamCombo.displayText || "Select or type..."
+                                                        font: dataStreamCombo.font
+                                                        color: dataStreamCombo.displayText ? "#ffffff" : "#666666"
+                                                        verticalAlignment: Text.AlignVCenter
+                                                        horizontalAlignment: Text.AlignLeft
+                                                        elide: Text.ElideRight
+                                                        visible: !textInput.activeFocus && !dataStreamCombo.displayText
+                                                    }
+
+                                                    TextInput {
+                                                        id: textInput
+                                                        anchors.fill: parent
+                                                        leftPadding: 8
+                                                        rightPadding: dataStreamCombo.indicator.width + 8
+                                                        text: dataStreamCombo.editable ? dataStreamCombo.editText : dataStreamCombo.displayText
+                                                        font: dataStreamCombo.font
+                                                        color: "#ffffff"
+                                                        verticalAlignment: Text.AlignVCenter
+                                                        horizontalAlignment: Text.AlignLeft
+                                                        selectByMouse: true
+                                                        clip: true
+                                                    }
+                                                }
+
+                                                indicator: Canvas {
+                                                    id: canvas
+                                                    x: dataStreamCombo.width - width - 5
+                                                    y: dataStreamCombo.topPadding + (dataStreamCombo.availableHeight - height) / 2
+                                                    width: 12
+                                                    height: 8
+                                                    contextType: "2d"
+
+                                                    Connections {
+                                                        target: dataStreamCombo
+                                                        function onPressedChanged() { canvas.requestPaint() }
+                                                    }
+
+                                                    onPaint: {
+                                                        context.reset()
+                                                        context.moveTo(0, 0)
+                                                        context.lineTo(width, 0)
+                                                        context.lineTo(width / 2, height)
+                                                        context.closePath()
+                                                        context.fillStyle = dataStreamCombo.enabled ? "#5c8dbd" : "#666666"
+                                                        context.fill()
+                                                    }
+                                                }
+
+                                                popup: Popup {
+                                                    y: dataStreamCombo.height
+                                                    width: dataStreamCombo.width
+                                                    implicitHeight: contentItem.implicitHeight
+                                                    padding: 1
+                                                    z: 3
+                                                    modal: false
+                                                    closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+
+                                                    contentItem: ListView {
+                                                        clip: true
+                                                        implicitHeight: contentHeight
+                                                        model: dataStreamCombo.popup.visible ? dataStreamCombo.delegateModel : null
+                                                        currentIndex: dataStreamCombo.highlightedIndex
+
+                                                        ScrollIndicator.vertical: ScrollIndicator { }
+                                                    }
+
+                                                    background: Rectangle {
+                                                        color: "#3a3a3a"
+                                                        border.color: "#5c8dbd"
+                                                        border.width: 1
+                                                        radius: 2
+                                                    }
+                                                }
+
+                                                delegate: ItemDelegate {
+                                                    width: dataStreamCombo.width
+                                                    contentItem: Text {
+                                                        text: modelData
+                                                        color: "#ffffff"
+                                                        font: dataStreamCombo.font
+                                                        elide: Text.ElideRight
+                                                        verticalAlignment: Text.AlignVCenter
+                                                    }
+                                                    highlighted: dataStreamCombo.highlightedIndex === index
+                                                    background: Rectangle {
+                                                        color: highlighted ? "#5c8dbd" : (parent.hovered ? "#4a4a4a" : "#3a3a3a")
+                                                    }
+                                                }
+                                            }
+
+                                            Item {
+                                                Layout.fillHeight: true
+                                            }
                                         }
                                     }
 

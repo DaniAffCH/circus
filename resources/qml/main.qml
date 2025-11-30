@@ -40,44 +40,53 @@ ApplicationWindow {
         }
     }
 
-    ColumnLayout {
+    Item {
         anchors.fill: parent
-        spacing: 0
 
-        // Top Row with Team Panels and Viewport
-        RowLayout {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
+        ColumnLayout {
+            anchors.fill: parent
             spacing: 0
 
-            // Left Team Panel
-            TeamPanel {
-                id: leftPanel
-                side: "left"
-                teamName: "Team 1"
-                teamRobots: appWindow.teams.length > 0 ? appWindow.teams[0].robots : []
-            }
-
-            // Center - Viewport Container
-            Item {
-                id: viewportContainer
-                objectName: "viewportContainer"
+            // Top Row with Team Panels and Viewport
+            RowLayout {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                spacing: 0
+
+                // Left Team Panel
+                TeamPanel {
+                    id: leftPanel
+                    side: "left"
+                    teamName: "Team 1"
+                    teamRobots: appWindow.teams.length > 0 ? appWindow.teams[0].robots : []
+                    z: 1
+                }
+
+                // Center - Viewport Container (lowest z-order)
+                Item {
+                    id: viewportContainer
+                    objectName: "viewportContainer"
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    z: 0
+                }
+
+                // Right Team Panel
+                TeamPanel {
+                    id: rightPanel
+                    side: "right"
+                    teamName: "Team 2"
+                    teamRobots: appWindow.teams.length > 1 ? appWindow.teams[1].robots : []
+                    z: 1
+                }
             }
 
-            // Right Team Panel
-            TeamPanel {
-                id: rightPanel
-                side: "right"
-                teamName: "Team 2"
-                teamRobots: appWindow.teams.length > 1 ? appWindow.teams[1].robots : []
+            // Bottom Tools Panel
+            ToolsPanel {
+                id: toolsPanel
+                teams: appWindow.teams
+                z: 2
             }
-        }
-
-        // Bottom Tools Panel
-        ToolsPanel {
-            id: toolsPanel
         }
     }
 }

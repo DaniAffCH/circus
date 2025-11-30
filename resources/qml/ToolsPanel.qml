@@ -11,13 +11,19 @@ Rectangle {
     property int expandedHeight: 200
     property int collapsedHeight: 40
 
+    // Grid properties
+    property int numColumns: 4
+    property int numRows: 1
+    property var columnWidths: [0.25, 0.25, 0.25, 0.25]
+    property var rowHeights: [1.0]
+
     Layout.fillWidth: true
     Layout.preferredHeight: collapsedHeight
     color: "#262525"
 
     Behavior on Layout.preferredHeight {
         enabled: !resizeMouseArea.pressed
-        NumberAnimation { duration: 300; easing.type: Easing.InOutQuad }
+        NumberAnimation { duration: 100; easing.type: Easing.InOutQuad }
     }
 
     // Top Border (Draggable Resize Handle)
@@ -116,24 +122,250 @@ Rectangle {
             }
         }
 
-        // Content Area
-        ScrollView {
+        // Toolbar with Add Row button
+        RowLayout {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 30
+            visible: toolsPanel.isExpanded
+            spacing: 10
+
+            Button {
+                text: "+ Add Row"
+                Layout.preferredHeight: 25
+                background: Rectangle {
+                    color: parent.hovered ? "#5c8dbd" : "#464545"
+                    radius: 2
+                }
+                contentItem: Label {
+                    text: parent.text
+                    font.pixelSize: 11
+                    color: "#ffffff"
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+                onClicked: {
+                    toolsPanel.numRows++
+                    var newHeights = toolsPanel.rowHeights.slice()
+                    newHeights.push(1.0 / toolsPanel.numRows)
+                    // Normalize heights
+                    var total = newHeights.reduce((a, b) => a + b, 0)
+                    for (var i = 0; i < newHeights.length; i++) {
+                        newHeights[i] /= total
+                    }
+                    toolsPanel.rowHeights = newHeights
+                }
+            }
+
+            Button {
+                text: "- Remove Row"
+                Layout.preferredHeight: 25
+                enabled: toolsPanel.numRows > 1
+                background: Rectangle {
+                    color: parent.enabled ? (parent.hovered ? "#bd5c5c" : "#464545") : "#3a3a3a"
+                    radius: 2
+                }
+                contentItem: Label {
+                    text: parent.text
+                    font.pixelSize: 11
+                    color: parent.enabled ? "#ffffff" : "#888888"
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+                onClicked: {
+                    if (toolsPanel.numRows > 1) {
+                        toolsPanel.numRows--
+                        var newHeights = toolsPanel.rowHeights.slice(0, -1)
+                        // Normalize heights
+                        var total = newHeights.reduce((a, b) => a + b, 0)
+                        for (var i = 0; i < newHeights.length; i++) {
+                            newHeights[i] /= total
+                        }
+                        toolsPanel.rowHeights = newHeights
+                    }
+                }
+            }
+
+            Item {
+                Layout.fillWidth: true
+            }
+
+            Label {
+                text: "Grid: " + toolsPanel.numRows + "×" + toolsPanel.numColumns
+                font.pixelSize: 11
+                color: "#aaaaaa"
+            }
+        }
+
+        // Content Area - Resizable Grid
+        Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
             clip: true
             visible: toolsPanel.isExpanded
 
             Rectangle {
-                width: toolsPanel.width - 10
-                height: Math.max(100, toolsPanel.height - 45)
+                anchors.fill: parent
                 color: "#5c5b5b"
                 radius: 3
 
-                Label {
-                    anchors.centerIn: parent
-                    text: "Tools Panel Content"
-                    font.pixelSize: 14
-                    color: "#ecf0f1"
+                // Grid Container
+                Item {
+                    anchors.fill: parent
+                    anchors.margins: 5
+
+                    Repeater {
+                        model: toolsPanel.numRows
+
+                        Item {
+                            id: rowContainer
+                            property int rowIndex: index
+                            x: 0
+                            y: {
+                                var yPos = 0
+                                for (var i = 0; i < rowIndex; i++) {
+                                    yPos += parent.height * toolsPanel.rowHeights[i]
+                                }
+                                return yPos
+                            }
+                            width: parent.width
+                            height: parent.height * toolsPanel.rowHeights[rowIndex]
+
+                            // Columns in this row
+                            Repeater {
+                                model: toolsPanel.numColumns
+
+                                Item {
+                                    id: cellContainer
+                                    property int colIndex: index
+                                    x: {
+                                        var xPos = 0
+                                        for (var i = 0; i < colIndex; i++) {
+                                            xPos += parent.width * toolsPanel.columnWidths[i]
+                                        }
+                                        return xPos
+                                    }
+                                    y: 0
+                                    width: parent.width * toolsPanel.columnWidths[colIndex]
+                                    height: parent.height
+
+                                    // Cell Content
+                                    Rectangle {
+                                        anchors.fill: parent
+                                        anchors.margins: 2
+                                        color: "#3a3a3a"
+                                        border.color: "#5c8dbd"
+                                        border.width: 1
+                                        radius: 2
+
+                                        Label {
+                                            anchors.centerIn: parent
+                                            text: "Cell [" + rowContainer.rowIndex + "," + cellContainer.colIndex + "]"
+                                            font.pixelSize: 11
+                                            color: "#aaaaaa"
+                                        }
+                                    }
+
+                                    // Right border resize handle (for columns)
+                                    Rectangle {
+                                        visible: cellContainer.colIndex < toolsPanel.numColumns - 1
+                                        x: parent.width - 2
+                                        y: 0
+                                        width: 4
+                                        height: parent.height
+                                        color: columnResizeArea.containsMouse || columnResizeArea.pressed ? "#5c8dbd" : "transparent"
+                                        z: 10
+
+                                        MouseArea {
+                                            id: columnResizeArea
+                                            anchors.fill: parent
+                                            cursorShape: Qt.SizeHorCursor
+                                            hoverEnabled: true
+                                            preventStealing: true
+
+                                            property real startMouseX: 0
+                                            property real startWidth: 0
+                                            property real startNextWidth: 0
+
+                                            onPressed: (mouse) => {
+                                                startMouseX = mouseX + parent.x
+                                                startWidth = toolsPanel.columnWidths[cellContainer.colIndex]
+                                                startNextWidth = toolsPanel.columnWidths[cellContainer.colIndex + 1]
+                                            }
+
+                                            onPositionChanged: (mouse) => {
+                                                if (pressed) {
+                                                    var currentMouseX = mouseX + parent.x
+                                                    var deltaX = currentMouseX - startMouseX
+                                                    var containerWidth = cellContainer.parent.width
+                                                    var deltaRatio = deltaX / containerWidth
+
+                                                    var newWidths = toolsPanel.columnWidths.slice()
+                                                    var newCurrent = Math.max(0.05, Math.min(0.95, startWidth + deltaRatio))
+                                                    var newNext = Math.max(0.05, startNextWidth - deltaRatio)
+
+                                                    // Ensure we don't go negative
+                                                    if (newCurrent >= 0.05 && newNext >= 0.05) {
+                                                        newWidths[cellContainer.colIndex] = newCurrent
+                                                        newWidths[cellContainer.colIndex + 1] = newNext
+                                                        toolsPanel.columnWidths = newWidths
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Bottom border resize handle (for rows)
+                            Rectangle {
+                                visible: rowContainer.rowIndex < toolsPanel.numRows - 1
+                                x: 0
+                                y: parent.height - 2
+                                width: parent.width
+                                height: 4
+                                color: rowResizeArea.containsMouse || rowResizeArea.pressed ? "#5c8dbd" : "transparent"
+                                z: 10
+
+                                MouseArea {
+                                    id: rowResizeArea
+                                    anchors.fill: parent
+                                    cursorShape: Qt.SizeVerCursor
+                                    hoverEnabled: true
+                                    preventStealing: true
+
+                                    property real startMouseY: 0
+                                    property real startHeight: 0
+                                    property real startNextHeight: 0
+
+                                    onPressed: (mouse) => {
+                                        startMouseY = mouseY + parent.y
+                                        startHeight = toolsPanel.rowHeights[rowContainer.rowIndex]
+                                        startNextHeight = toolsPanel.rowHeights[rowContainer.rowIndex + 1]
+                                    }
+
+                                    onPositionChanged: (mouse) => {
+                                        if (pressed) {
+                                            var currentMouseY = mouseY + parent.y
+                                            var deltaY = currentMouseY - startMouseY
+                                            var containerHeight = rowContainer.parent.height
+                                            var deltaRatio = deltaY / containerHeight
+
+                                            var newHeights = toolsPanel.rowHeights.slice()
+                                            var newCurrent = Math.max(0.05, Math.min(0.95, startHeight + deltaRatio))
+                                            var newNext = Math.max(0.05, startNextHeight - deltaRatio)
+
+                                            // Ensure we don't go negative
+                                            if (newCurrent >= 0.05 && newNext >= 0.05) {
+                                                newHeights[rowContainer.rowIndex] = newCurrent
+                                                newHeights[rowContainer.rowIndex + 1] = newNext
+                                                toolsPanel.rowHeights = newHeights
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

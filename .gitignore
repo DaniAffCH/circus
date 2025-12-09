@@ -89,6 +89,8 @@ StyleCopReport.xml
 *.ilk
 *.meta
 *.obj
+# Exception: track 3D mesh files in resources
+!resources/**/*.obj
 *.idb
 *.iobj
 *.pch

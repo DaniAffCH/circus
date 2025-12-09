@@ -1,2 +1,0 @@
-- Arricchire teamspec e robotspec
-- geomid dei robot non hanno nome, non so se diventa un problema in futuro

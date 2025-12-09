@@ -1,7 +1,7 @@
 # circus
 
 <div align="center">
-  <img src="Assets/logo.png" alt="circus Logo" width="250"/>
+  <img src="assets/logo.png" alt="circus Logo" width="250"/>
 </div>
 
 **circus** is a multi-platform humanoid robot soccer simulator built on top of MuJoCo. It supports mixed teams of robots, enabling realistic and flexible RoboCup simulations. Designed for research and development, circus provides accurate physics, advanced robot models, and seamless integration across operating systems.
@@ -13,7 +13,7 @@ This project uses pixi to declare and reproduce the build/runtime dependency env
 #### Overview
 - pixi manages the environment and dependencies defined in [pixi.toml](pixi.toml).
 - CMake is used to configure and build the native C++ targets defined in [CMakeLists.txt](CMakeLists.txt).
-- The main executable target is `main` (entrypoint: [Src/main.cpp](Src/main.cpp)) and is placed in the build directory.
+- The main executable target is `main` (entrypoint: [src/main.cpp](src/main.cpp)) and is placed in the build directory.
 
 #### Prerequisites
 - pixi installed (install following pixi project documentation).
@@ -34,4 +34,4 @@ pixi run main
 ### Links
 - pixi configuration: [pixi.toml](pixi.toml)
 - Build configuration: [CMakeLists.txt](CMakeLists.txt)
-- C++ entrypoint: [Src/main.cpp](Src/main.cpp)
+- C++ entrypoint: [src/main.cpp](src/main.cpp)

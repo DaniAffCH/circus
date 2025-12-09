@@ -1,0 +1,68 @@
+site_name: SPQR Team
+site_description: SPQR Team Documentation
+copyright: "2025, SPQR Team"
+site_url: https://mydomain.org/mysite # TODO
+repo_url: https://github.com/DaniAffCH/circus
+repo_name: SPQRTeam/circus
+
+nav:
+  - Overview: index.md
+  - Getting Started:
+      - Introduction: getting_started/introduction.md
+      - Installation: getting_started/installation.md
+      - Quick Start Guide: getting_started/quick_start_guide.md
+
+theme:
+  name: material
+  favicon: assets/logo.png
+  logo: assets/logo_bw.png
+  font:
+    text: Red Hat Text
+    code: JetBrains Mono
+
+  palette:
+    # Palette toggle for automatic mode
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+
+  features:
+    - content.tabs.link
+    - content.code.copy
+    - content.action.edit
+    - content.code.annotate
+    - content.tooltips
+    - content.code.select
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.tracking
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+
+  icon:
+    edit: material/pencil
+    view: material/eye
+    repo: fontawesome/brands/github
+
+extra_css:
+  - stylesheets/extra.css

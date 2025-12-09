@@ -1,0 +1,4 @@
+image: ubuntu:22.04
+volumes:
+  - "/home/daniaffch/Dev/spqrbooster2026/src/SimBridge/bridge/build:/app/BridgeSubscriber"
+  - "/home/daniaffch/Dev/spqrbooster2026/src/SimBridge/fake_framework/build:/app/fake_framework"

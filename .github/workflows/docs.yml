@@ -1,0 +1,43 @@
+name: Deploy Docs to GitHub Pages
+
+on:
+  # Trigger the workflow every time you push to the `main` branch
+  push:
+    branches:
+      - main
+      - docs
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+
+permissions:
+  contents: write
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and the latest queued.
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Check out the repository so the workflow can access it
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Python, which is required by MkDocs
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
+
+      # Step 3: Install MkDocs and any plugins or themes
+      # If you use a theme like 'material', add it here
+      - name: Install dependencies
+        run: pip install mkdocs mkdocs-material
+
+      # Step 4: Build the documentation and deploy it to the gh-pages branch
+      # This command creates a `gh-pages` branch automatically
+      - name: Deploy to GitHub Pages
+        run: mkdocs gh-deploy --force --clean

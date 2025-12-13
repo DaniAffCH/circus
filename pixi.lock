@@ -61,6 +61,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/linux-64/libnghttp2-1.67.0-had1ee68_0.conda
       - conda: https://prefix.dev/conda-forge/linux-64/libnsl-2.0.1-hb9d3cd8_1.conda
       - conda: https://prefix.dev/conda-forge/linux-64/libntlm-1.8-hb9d3cd8_0.conda
+      - conda: https://prefix.dev/conda-forge/linux-64/libopengl-1.7.0-ha4b6fd6_2.conda
       - conda: https://prefix.dev/conda-forge/linux-64/libpciaccess-0.18-hb9d3cd8_0.conda
       - conda: https://prefix.dev/conda-forge/linux-64/libpng-1.6.50-h421ea60_1.conda
       - conda: https://prefix.dev/conda-forge/linux-64/libpq-18.1-h5c52fec_1.conda
@@ -90,6 +91,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/linux-64/python-3.12.12-hd63d673_1_cpython.conda
       - conda: https://prefix.dev/conda-forge/noarch/python_abi-3.12-8_cp312.conda
       - conda: https://prefix.dev/conda-forge/linux-64/qhull-2020.2-h434a139_5.conda
+      - conda: https://prefix.dev/conda-forge/linux-64/qt6-charts-6.9.3-hecca717_0.conda
       - conda: https://prefix.dev/conda-forge/linux-64/qt6-main-6.9.3-h5c1c036_1.conda
       - conda: https://prefix.dev/conda-forge/linux-64/readline-8.2-h8c095d6_2.conda
       - conda: https://prefix.dev/conda-forge/linux-64/tinyxml2-11.0.0-h3f2d84a_0.conda
@@ -185,6 +187,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/osx-arm64/python-3.12.12-h18782d2_1_cpython.conda
       - conda: https://prefix.dev/conda-forge/noarch/python_abi-3.12-8_cp312.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/qhull-2020.2-h420ef59_5.conda
+      - conda: https://prefix.dev/conda-forge/osx-arm64/qt6-charts-6.9.3-h6cd5c4e_0.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/qt6-main-6.9.3-hb266e41_0.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/readline-8.2-h1d1bf99_2.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/tinyxml2-11.0.0-ha1acc90_0.conda
@@ -320,6 +323,7 @@ packages:
   subdir: osx-arm64
   depends:
   - libcxx >=21
+  - qt6-charts >=6.9.2,<6.10.0a0
   - libcurl >=8.14.1,<9.0a0
   - pugixml >=1.15,<1.16.0a0
   - python_abi 3.12.* *_cp312
@@ -329,7 +333,7 @@ packages:
   - msgpack-cxx >=7.0.0,<8.0a0
   - libboost >=1.88.0,<1.89.0a0
   input:
-    hash: 437c06546add47ddca9e551d94285b5132628f0499d716ab173f5ff45291aa8b
+    hash: 705b89ab5dc60f96852095e04858eedbe3eed8d48f167c14f2abfad75c38daff
     globs: []
 - conda: .
   name: circus
@@ -340,6 +344,7 @@ packages:
   - libstdcxx >=15
   - libgcc >=15
   - libmujoco >=3.3.3,<3.3.4.0a0
+  - qt6-charts >=6.9.2,<6.10.0a0
   - libcurl >=8.14.1,<9.0a0
   - pugixml >=1.15,<1.16.0a0
   - python_abi 3.12.* *_cp312
@@ -350,7 +355,7 @@ packages:
   - libgl >=1.7.0,<2.0a0
   - libegl >=1.7.0,<2.0a0
   input:
-    hash: 437c06546add47ddca9e551d94285b5132628f0499d716ab173f5ff45291aa8b
+    hash: 705b89ab5dc60f96852095e04858eedbe3eed8d48f167c14f2abfad75c38daff
     globs: []
 - conda: https://prefix.dev/conda-forge/linux-64/cyrus-sasl-2.1.28-hd9c7081_0.conda
   sha256: ee09ad7610c12c7008262d713416d0b58bf365bc38584dce48950025850bdf3f
@@ -1263,6 +1268,15 @@ packages:
   license: LGPL-2.1-or-later
   size: 31099
   timestamp: 1734670168822
+- conda: https://prefix.dev/conda-forge/linux-64/libopengl-1.7.0-ha4b6fd6_2.conda
+  sha256: 215086c108d80349e96051ad14131b751d17af3ed2cb5a34edd62fa89bfe8ead
+  md5: 7df50d44d4a14d6c31a2c54f2cd92157
+  depends:
+  - __glibc >=2.17,<3.0.a0
+  - libglvnd 1.7.0 ha4b6fd6_2
+  license: LicenseRef-libglvnd
+  size: 50757
+  timestamp: 1731330993524
 - conda: https://prefix.dev/conda-forge/linux-64/libpciaccess-0.18-hb9d3cd8_0.conda
   sha256: 0bd91de9b447a2991e666f284ae8c722ffb1d84acb594dbd0c031bd656fa32b2
   md5: 70e3400cbbfa03e96dcde7fc13e38c7b
@@ -1841,6 +1855,34 @@ packages:
   license: LicenseRef-Qhull
   size: 516376
   timestamp: 1720814307311
+- conda: https://prefix.dev/conda-forge/linux-64/qt6-charts-6.9.3-hecca717_0.conda
+  sha256: e63fc8a748cc8d1047624a9e426c370f0966bd45f6400538725b69dd45d02283
+  md5: 3fd50ed55350c6d6808e62a0bff325cd
+  depends:
+  - __glibc >=2.17,<3.0.a0
+  - libegl >=1.7.0,<2.0a0
+  - libgcc >=14
+  - libgl >=1.7.0,<2.0a0
+  - libopengl >=1.7.0,<2.0a0
+  - libstdcxx >=14
+  - qt6-main 6.9.3.*
+  - qt6-main >=6.9.3,<6.10.0a0
+  license: GPL-3.0-only
+  license_family: GPL
+  size: 991915
+  timestamp: 1759322600630
+- conda: https://prefix.dev/conda-forge/osx-arm64/qt6-charts-6.9.3-h6cd5c4e_0.conda
+  sha256: 9cf0aee897eae7fadcfa37a07fe6e283d1659b628bf09c686d27b6167cc9918c
+  md5: 56d622505df3828733846bce495e7421
+  depends:
+  - __osx >=11.0
+  - libcxx >=19
+  - qt6-main 6.9.3.*
+  - qt6-main >=6.9.3,<6.10.0a0
+  license: GPL-3.0-only
+  license_family: GPL
+  size: 729799
+  timestamp: 1759323359932
 - conda: https://prefix.dev/conda-forge/linux-64/qt6-main-6.9.3-h5c1c036_1.conda
   sha256: 51537408ce1493d267b375b33ec02a060d77c4e00c7bef5e2e1c6724e08a23e3
   md5: 762af6d08fdfa7a45346b1466740bacd

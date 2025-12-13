@@ -45,8 +45,7 @@ Rectangle {
             }
 
             contentItem: Item {
-                implicitWidth: parent.width
-                implicitHeight: parent.height
+                anchors.fill: parent
 
                 Label {
                     text: {

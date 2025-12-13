@@ -20,9 +20,23 @@ namespace spqr {
 struct BallSpec {
     Vector3d position;
 };
+
+struct CellData {
+    int row;
+    int column;
+    string stream;
+};
+
+struct GuiConfig {
+    int rows = 1;
+    int columns = 4;
+    std::vector<CellData> cellData;
+};
+
 struct SceneSpec {
     std::string field;
     std::vector<std::shared_ptr<Team>> teams;
+    GuiConfig guiConfig;
 };
 
 class SceneParser {

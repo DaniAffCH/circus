@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import Circus 1.0
 
 Rectangle {
     id: toolsPanel
@@ -20,6 +21,60 @@ Rectangle {
     // Teams data
     property var teams: []
     property var dataStreamOptions: buildDataStreamOptions()
+
+    // Cell data configuration - maps "row_col" to stream name
+    property var cellDataMap: ({})
+
+    // Store references to all ComboBoxes
+    property var comboBoxRefs: ({})
+
+    // Component for Plot2D
+    Component {
+        id: plot2DComponent
+        Plot2D {
+            id: plot2d
+        }
+    }
+
+    // Function to apply cell data configuration
+    function applyCellData(cellDataList) {
+        var newMap = {}
+        for (var i = 0; i < cellDataList.length; i++) {
+            var cellData = cellDataList[i]
+            var key = cellData.row + "_" + cellData.column
+            newMap[key] = cellData.stream
+        }
+        cellDataMap = newMap
+    }
+
+    // Function to collect current cell data from all ComboBoxes
+    function collectCellData() {
+        var cellDataList = []
+        for (var key in comboBoxRefs) {
+            var combo = comboBoxRefs[key]
+            if (combo) {
+                var parts = key.split("_")
+                var row = parseInt(parts[0])
+                var col = parseInt(parts[1])
+
+                var streamValue = ""
+                if (combo.currentIndex >= 0 && combo.currentIndex < combo.model.length) {
+                    streamValue = combo.model[combo.currentIndex]
+                } else {
+                    streamValue = combo.editText || ""
+                }
+
+                if (streamValue) {
+                    cellDataList.push({
+                        "row": row,
+                        "column": col,
+                        "stream": streamValue
+                    })
+                }
+            }
+        }
+        return cellDataList
+    }
 
     // Build list of available data streams from all robots
     function buildDataStreamOptions() {
@@ -235,6 +290,62 @@ Rectangle {
                 }
             }
 
+            Button {
+                text: "+ Add Column"
+                Layout.preferredHeight: 25
+                background: Rectangle {
+                    color: parent.hovered ? "#5c8dbd" : "#464545"
+                    radius: 2
+                }
+                contentItem: Label {
+                    text: parent.text
+                    font.pixelSize: 11
+                    color: "#ffffff"
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+                onClicked: {
+                    toolsPanel.numColumns++
+                    var newWidths = toolsPanel.columnWidths.slice()
+                    newWidths.push(1.0 / toolsPanel.numColumns)
+                    // Normalize widths
+                    var total = newWidths.reduce((a, b) => a + b, 0)
+                    for (var i = 0; i < newWidths.length; i++) {
+                        newWidths[i] /= total
+                    }
+                    toolsPanel.columnWidths = newWidths
+                }
+            }
+
+            Button {
+                text: "- Remove Column"
+                Layout.preferredHeight: 25
+                enabled: toolsPanel.numColumns > 1
+                background: Rectangle {
+                    color: parent.enabled ? (parent.hovered ? "#bd5c5c" : "#464545") : "#3a3a3a"
+                    radius: 2
+                }
+                contentItem: Label {
+                    text: parent.text
+                    font.pixelSize: 11
+                    color: parent.enabled ? "#ffffff" : "#888888"
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+                onClicked: {
+                    if (toolsPanel.numColumns > 1) {
+                        toolsPanel.numColumns--
+                        var newWidths = toolsPanel.columnWidths.slice(0, -1)
+                        // Normalize widths
+                        var total = newWidths.reduce((a, b) => a + b, 0)
+                        for (var i = 0; i < newWidths.length; i++) {
+                            newWidths[i] /= total
+                        }
+                        toolsPanel.columnWidths = newWidths
+                    }
+                }
+            }
+
             Item {
                 Layout.fillWidth: true
             }
@@ -298,6 +409,11 @@ Rectangle {
                                     width: parent.width * toolsPanel.columnWidths[colIndex]
                                     height: parent.height
 
+                                    // ToolCellWrapper instance for this cell
+                                    ToolCellWrapper {
+                                        id: cellWrapper
+                                    }
+
                                     // Cell Content
                                     Rectangle {
                                         anchors.fill: parent
@@ -307,26 +423,178 @@ Rectangle {
                                         border.width: 1
                                         radius: 2
 
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            acceptedButtons: Qt.RightButton
+                                            onClicked: {
+                                                contextMenu.popup()
+                                            }
+                                        }
+
+                                        Menu {
+                                            id: contextMenu
+                                            property var panel: toolsPanel
+
+                                            MenuItem {
+                                                text: "Split Horizontally"
+                                                onTriggered: {
+                                                    // Add a new row
+                                                    var panel = contextMenu.panel
+                                                    panel.numRows++
+                                                    var newHeights = panel.rowHeights.slice()
+                                                    newHeights.push(1.0 / panel.numRows)
+                                                    // Normalize heights
+                                                    var total = newHeights.reduce((a, b) => a + b, 0)
+                                                    for (var i = 0; i < newHeights.length; i++) {
+                                                        newHeights[i] /= total
+                                                    }
+                                                    panel.rowHeights = newHeights
+                                                }
+                                            }
+
+                                            MenuItem {
+                                                text: "Split Vertically"
+                                                onTriggered: {
+                                                    // Add a new column
+                                                    var panel = contextMenu.panel
+                                                    panel.numColumns++
+                                                    var newWidths = panel.columnWidths.slice()
+                                                    newWidths.push(1.0 / panel.numColumns)
+                                                    // Normalize widths
+                                                    var total = newWidths.reduce((a, b) => a + b, 0)
+                                                    for (var i = 0; i < newWidths.length; i++) {
+                                                        newWidths[i] /= total
+                                                    }
+                                                    panel.columnWidths = newWidths
+                                                }
+                                            }
+                                        }
+
                                         ColumnLayout {
                                             anchors.fill: parent
                                             anchors.margins: 5
-                                            spacing: 5
+                                            spacing: 3
 
-                                            Label {
-                                                Layout.alignment: Qt.AlignHCenter
-                                                text: "Cell [" + rowContainer.rowIndex + "," + cellContainer.colIndex + "]"
-                                                font.pixelSize: 10
-                                                color: "#888888"
-                                            }
-
-                                            ComboBox {
-                                                id: dataStreamCombo
+                                            // Header with cell info and stream selector
+                                            RowLayout {
                                                 Layout.fillWidth: true
-                                                Layout.preferredHeight: 30
-                                                Layout.alignment: Qt.AlignVCenter
-                                                editable: true
+                                                Layout.preferredHeight: 28
+                                                spacing: 5
 
-                                                model: toolsPanel.dataStreamOptions
+                                                Label {
+                                                    text: "[" + rowContainer.rowIndex + "," + cellContainer.colIndex + "]"
+                                                    font.pixelSize: 9
+                                                    color: "#888888"
+                                                }
+
+                                                CheckBox {
+                                                    id: showPlotCheckbox
+                                                    text: "Show Plot"
+                                                    checked: false
+                                                    font.pixelSize: 9
+
+                                                    indicator: Rectangle {
+                                                        implicitWidth: 16
+                                                        implicitHeight: 16
+                                                        x: showPlotCheckbox.leftPadding
+                                                        y: parent.height / 2 - height / 2
+                                                        radius: 2
+                                                        border.color: showPlotCheckbox.checked ? "#5c8dbd" : "#666666"
+                                                        border.width: 1
+                                                        color: "#3a3a3a"
+
+                                                        Rectangle {
+                                                            width: 10
+                                                            height: 10
+                                                            x: 3
+                                                            y: 3
+                                                            radius: 1
+                                                            color: "#5c8dbd"
+                                                            visible: showPlotCheckbox.checked
+                                                        }
+                                                    }
+
+                                                    contentItem: Text {
+                                                        text: showPlotCheckbox.text
+                                                        font: showPlotCheckbox.font
+                                                        color: "#aaaaaa"
+                                                        verticalAlignment: Text.AlignVCenter
+                                                        leftPadding: showPlotCheckbox.indicator.width + showPlotCheckbox.spacing
+                                                    }
+                                                }
+
+                                                ComboBox {
+                                                    id: dataStreamCombo
+                                                    Layout.fillWidth: true
+                                                    Layout.preferredHeight: 25
+                                                    editable: true
+
+                                                    model: toolsPanel.dataStreamOptions
+
+                                                    property string cellKey: rowContainer.rowIndex + "_" + cellContainer.colIndex
+                                                    property string selectedStream: {
+                                                        if (currentIndex >= 0 && currentIndex < model.length) {
+                                                            return model[currentIndex]
+                                                        }
+                                                        return editText || ""
+                                                    }
+
+                                                function updateFromConfig() {
+                                                    // Check if there's a configured stream for this cell
+                                                    var configuredStream = toolsPanel.cellDataMap[cellKey]
+
+                                                    if (configuredStream) {
+                                                        // Try to find the configured stream in the model
+                                                        var foundIndex = -1
+                                                        for (var i = 0; i < model.length; i++) {
+                                                            if (model[i] === configuredStream) {
+                                                                foundIndex = i
+                                                                break
+                                                            }
+                                                        }
+
+                                                        if (foundIndex >= 0) {
+                                                            currentIndex = foundIndex
+                                                        } else {
+                                                            editText = configuredStream
+                                                        }
+                                                    } else {
+                                                        // No configuration for this cell, use first available stream
+                                                        if (model.length > 0) {
+                                                            currentIndex = 0
+                                                        }
+                                                    }
+                                                }
+
+                                                Connections {
+                                                    target: toolsPanel
+                                                    function onCellDataMapChanged() {
+                                                        dataStreamCombo.updateFromConfig()
+                                                    }
+                                                }
+
+                                                Component.onCompleted: {
+                                                    // Register this ComboBox
+                                                    var newRefs = toolsPanel.comboBoxRefs
+                                                    newRefs[cellKey] = dataStreamCombo
+                                                    toolsPanel.comboBoxRefs = newRefs
+
+                                                    updateFromConfig()
+                                                }
+
+                                                Component.onDestruction: {
+                                                    // Unregister this ComboBox
+                                                    var newRefs = toolsPanel.comboBoxRefs
+                                                    delete newRefs[cellKey]
+                                                    toolsPanel.comboBoxRefs = newRefs
+                                                }
+
+                                                // Update wrapper when stream selection changes
+                                                onSelectedStreamChanged: {
+                                                    if (selectedStream) {
+                                                        cellWrapper.setStream(selectedStream, toolsPanel.teams)
+                                                    }
+                                                }
 
                                                 background: Rectangle {
                                                     color: parent.pressed ? "#2a2a2a" : (parent.hovered ? "#4a4a4a" : "#464545")
@@ -429,9 +697,151 @@ Rectangle {
                                                     }
                                                 }
                                             }
+                                            }
+
+                                            // Data display area - always visible below ComboBox
+                                            Rectangle {
+                                                Layout.fillWidth: true
+                                                Layout.fillHeight: !showPlotCheckbox.checked
+                                                Layout.preferredHeight: showPlotCheckbox.checked ? 40 : -1
+                                                Layout.minimumHeight: 30
+                                                color: "#5c5b5b"
+                                                radius: 3
+                                                border.color: "#5c8dbd"
+                                                border.width: 1
+
+                                                Label {
+                                                    anchors.fill: parent
+                                                    anchors.margins: 6
+                                                    font.pixelSize: 11
+                                                    font.family: "monospace"
+                                                    font.bold: true
+                                                    color: "#ffffff"
+                                                    verticalAlignment: Text.AlignVCenter
+                                                    horizontalAlignment: Text.AlignLeft
+                                                    elide: Text.ElideRight
+                                                    wrapMode: Text.NoWrap
+                                                    text: {
+                                                        if (cellWrapper.hasData) {
+                                                            var data = cellWrapper.data
+                                                            if (data && data.x !== undefined) {
+                                                                // If height is small, show on one line
+                                                                if (parent.height < 55) {
+                                                                    return "X:" + data.x.toFixed(3) + " Y:" + data.y.toFixed(3) + " Z:" + data.z.toFixed(3)
+                                                                } else {
+                                                                    // Show on three lines when there's space
+                                                                    return "X: " + data.x.toFixed(4) + "\n" +
+                                                                           "Y: " + data.y.toFixed(4) + "\n" +
+                                                                           "Z: " + data.z.toFixed(4)
+                                                                }
+                                                            }
+                                                        }
+                                                        return "No data"
+                                                    }
+                                                }
+
+                                                // Update data periodically
+                                                Timer {
+                                                    interval: 50
+                                                    running: true
+                                                    repeat: true
+                                                    onTriggered: {
+                                                        // Force update of text binding
+                                                    }
+                                                }
+                                            }
+
+                                            // Plot area - shows Plot2D for data streams
+                                            Rectangle {
+                                                Layout.fillWidth: true
+                                                Layout.fillHeight: true
+                                                Layout.minimumHeight: 100
+                                                visible: showPlotCheckbox.checked
+                                                color: "#1a1a1a"
+                                                border.color: "#ff0000"
+                                                border.width: 2
+
+                                                Label {
+                                                    anchors.centerIn: parent
+                                                    text: "Plot area - Loading: " + (plotLoader.status === Loader.Loading ? "Yes" : "No") + 
+                                                          "\nReady: " + (plotLoader.status === Loader.Ready ? "Yes" : "No") +
+                                                          "\nItem: " + (plotLoader.item ? "Loaded" : "Null") +
+                                                          "\nCheckbox: " + showPlotCheckbox.checked +
+                                                          "\nStream: " + dataStreamCombo.selectedStream +
+                                                          "\nHas IMU/Pose: " + (dataStreamCombo.selectedStream && 
+                                                                                (dataStreamCombo.selectedStream.indexOf("IMU") >= 0 ||
+                                                                                 dataStreamCombo.selectedStream.indexOf("Pose") >= 0))
+                                                    color: "#ffffff"
+                                                    font.pixelSize: 10
+                                                }
+
+                                                Loader {
+                                                    id: plotLoader
+                                                    anchors.fill: parent
+                                                    active: showPlotCheckbox.checked
+
+                                                    sourceComponent: plot2DComponent
+
+                                                    onStatusChanged: {
+                                                        console.log("Plot loader status:", status, "item:", item)
+                                                    }
+
+                                                    onLoaded: {
+                                                        console.log("Plot loaded! Item:", item)
+                                                        if (item) {
+                                                            item.title = dataStreamCombo.selectedStream
+                                                            console.log("Setting plot title:", dataStreamCombo.selectedStream)
+                                                            // Adjust min/max based on stream type
+                                                            if (dataStreamCombo.selectedStream.indexOf("IMU Linear Acceleration") >= 0) {
+                                                                item.minValue = -20.0
+                                                                item.maxValue = 20.0
+                                                            } else if (dataStreamCombo.selectedStream.indexOf("IMU Angular Velocity") >= 0) {
+                                                                item.minValue = -10.0
+                                                                item.maxValue = 10.0
+                                                            } else if (dataStreamCombo.selectedStream.indexOf("Pose Position") >= 0) {
+                                                                item.minValue = -5.0
+                                                                item.maxValue = 5.0
+                                                            } else if (dataStreamCombo.selectedStream.indexOf("Pose Orientation") >= 0) {
+                                                                item.minValue = -3.5
+                                                                item.maxValue = 3.5
+                                                            }
+                                                        }
+                                                    }
+
+                                                    Connections {
+                                                        target: dataStreamCombo
+                                                        function onSelectedStreamChanged() {
+                                                            plotLoader.sourceComponent = plotLoader.sourceComponent
+                                                        }
+                                                    }
+
+                                                    Connections {
+                                                        target: showPlotCheckbox
+                                                        function onCheckedChanged() {
+                                                            plotLoader.sourceComponent = plotLoader.sourceComponent
+                                                        }
+                                                    }
+
+                                                    // Timer to update plot data
+                                                    Timer {
+                                                        interval: 100  // Update every 100ms
+                                                        running: plotLoader.item !== null
+                                                        repeat: true
+                                                        onTriggered: {
+                                                            if (plotLoader.item && cellWrapper.hasData) {
+                                                                var data = cellWrapper.data
+                                                                if (data && data.x !== undefined) {
+                                                                    plotLoader.item.addDataPoint(data.x, data.y, data.z)
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
 
                                             Item {
                                                 Layout.fillHeight: true
+                                                visible: !plotLoader.item
                                             }
                                         }
                                     }

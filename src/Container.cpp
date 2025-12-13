@@ -9,6 +9,7 @@
 #define DELETE "DELETE"
 #define PUT "PUT"
 
+
 /*
 Endpoints and parameters:
 https://docs.docker.com/reference/api/engine/version/v1.39/
@@ -20,6 +21,8 @@ https://docs.docker.com/reference/api/engine/version/v1.39/
 #define DELETE_OK_RESPONSE 204
 
 namespace spqr {
+
+
 
 inline std::string create_container_endpoint(const std::string& name) {
     return "/containers/create?name=" + name;
@@ -65,11 +68,27 @@ Container::~Container() {
         curl_easy_cleanup(curl_handle);
 }
 
+bool checkDockerImage(const std::string& imageName) {
+    std::string command = "docker image inspect " + imageName + " > /dev/null 2>&1";
+    int status = system(command.c_str());
+
+    if (status != 0) {
+        std::string pullCommand = "docker pull " + imageName + " > /dev/null 2>&1";
+        return system(pullCommand.c_str()) == 0;
+    }
+
+    return true;
+}
+
 void Container::create(const std::string& robot_name, const std::string& image,
                        const std::vector<std::string>& binds) {
     nlohmann::json payload;
     payload["Image"] = image;
 
+    bool verifyDockerImage = checkDockerImage(image);
+    if (!verifyDockerImage) {
+        throw std::runtime_error("Docker image not found and error during pull the: " + image);
+    }
     // Forcing networkMode to host is necessary to establish a communication between simulator and docker
     // container.
     payload["HostConfig"] = {{"NetworkMode", "host"}, {"Binds", binds}};
@@ -114,6 +133,7 @@ void Container::remove() {
     request(DELETE, endpoint, DELETE_OK_RESPONSE);
     state = ContainerState::REMOVED;
 }
+
 
 std::string Container::request(const std::string& method, const std::string& endpoint,
                                const long expected_response, const nlohmann::json* body) {

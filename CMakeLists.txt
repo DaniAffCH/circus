@@ -31,7 +31,7 @@ option(BUILD_PYTHON_BINDINGS "Build python bindings" ON)
 # ============================= Dependencies ==================================================
 find_package(Eigen3 REQUIRED)
 find_package(OpenGL REQUIRED)
-find_package(Qt6 REQUIRED COMPONENTS Core Widgets OpenGLWidgets Qml Quick)
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets OpenGLWidgets Qml Quick Charts)
 
 # Optional deps (linked only if found)
 find_package(nlohmann_json QUIET)
@@ -179,6 +179,7 @@ set(_EXTRA_LIBS
   Qt6::OpenGLWidgets
   Qt6::Qml
   Qt6::Quick
+  Qt6::Charts
   ${_PUGI_TGT}
   CURL::libcurl
   nlohmann_json::nlohmann_json

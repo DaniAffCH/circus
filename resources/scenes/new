@@ -23,7 +23,7 @@ teams:
 gui_config:
   - tools_panel:
       - 1
-      - 2
+      - 3
   - cell_data:
       - cell:
           - 0
@@ -32,4 +32,8 @@ gui_config:
       - cell:
           - 0
           - 1
+        stream: Team 1 - red_Booster-K1_0 (R1) - IMU Linear Acceleration
+      - cell:
+          - 0
+          - 2
         stream: Team 1 - red_Booster-K1_0 (R1) - IMU Linear Acceleration

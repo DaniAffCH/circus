@@ -11,13 +11,16 @@
 #include <QQuickWindow>
 #include <QTimer>
 #include <QWindow>
+#include <QtQml>
 #include <csignal>
+#include <fstream>
 
 #include "MujocoContext.h"
 #include "RobotManager.h"
 #include "RobotQmlWrapper.h"
 #include "SceneParser.h"
 #include "Team.h"
+#include "ToolCellWrapper.h"
 
 namespace spqr {
 
@@ -43,6 +46,10 @@ QVariantList AppWindow::getTeamsForQml() const {
     return teamsList;
 }
 
+QVariantMap AppWindow::getGuiConfig() const {
+    return currentGuiConfig_;
+}
+
 void AppWindow::updateRobotData() {
     // Call update() on all robot wrappers to emit signals
     for (QObject* obj : robotWrappers_) {
@@ -57,6 +64,9 @@ AppWindow::AppWindow(int& argc, char** argv) {
     std::signal(SIGINT, signalHandler);
     std::signal(SIGSEGV, signalHandler);
     std::signal(SIGABRT, signalHandler);
+
+    // Register custom QML types
+    qmlRegisterType<ToolCellWrapper>("Circus", 1, 0, "ToolCellWrapper");
 
     // Create QML engine ONCE
     qmlEngine = std::make_unique<QQmlApplicationEngine>();
@@ -90,6 +100,9 @@ void AppWindow::loadScene(const QString& yamlFile) {
     try {
         qDebug() << "Loading scene:" << yamlFile;
 
+        // Store the current scene path
+        currentScenePath_ = yamlFile;
+
         qDebug() << "1. Clearing team manager...";
         TeamManager::instance().clear();
 
@@ -119,6 +132,25 @@ void AppWindow::loadScene(const QString& yamlFile) {
         qDebug() << "5. Parsing scene...";
         SceneParser parser(yamlFile.toStdString());
         std::string xmlScene = parser.buildMuJoCoXml();
+
+        const auto& sceneInfo = parser.getSceneInfo();
+        currentGuiConfig_["numRows"] = sceneInfo.guiConfig.rows;
+        currentGuiConfig_["numColumns"] = sceneInfo.guiConfig.columns;
+
+        // Expose cell data as QML list of objects
+        QVariantList cellDataList;
+        for (const auto& cellData : sceneInfo.guiConfig.cellData) {
+            QVariantMap cellMap;
+            cellMap["row"] = cellData.row;
+            cellMap["column"] = cellData.column;
+            cellMap["stream"] = QString::fromStdString(cellData.stream);
+            cellDataList.append(cellMap);
+        }
+        currentGuiConfig_["cellData"] = cellDataList;
+
+        qDebug() << "GUI Config from scene:" << sceneInfo.guiConfig.rows << "rows,"
+                 << sceneInfo.guiConfig.columns << "columns"
+                 << "with" << sceneInfo.guiConfig.cellData.size() << "cell data entries";
 
         qDebug() << "6. Creating MuJoCo context...";
         mujContext = std::make_unique<MujocoContext>(xmlScene);
@@ -197,11 +229,98 @@ void AppWindow::loadScene(const QString& yamlFile) {
         qDebug() << "13. Emitting teams changed signal...";
         emit teamsChanged();
 
+        qDebug() << "14. Emitting gui config changed signal...";
+        emit guiConfigChanged();
+
         qDebug() << "Scene loaded successfully";
     } catch (const std::exception& e) {
         qWarning() << "Error loading scene:" << e.what();
     } catch (...) {
         qWarning() << "Unknown error loading scene";
+    }
+}
+
+QString AppWindow::getCurrentScenePath() const {
+    return currentScenePath_;
+}
+
+void AppWindow::saveGuiConfig(const QString& yamlFile, const QVariantList& cellData, int numRows, int numColumns) {
+    try {
+        qDebug() << "Saving GUI config to:" << yamlFile;
+
+        YAML::Node root;
+
+        // Check if target file exists
+        std::ifstream fin(yamlFile.toStdString());
+        bool fileExists = fin.good();
+        fin.close();
+
+        if (fileExists) {
+            // File exists, load and update it
+            root = YAML::LoadFile(yamlFile.toStdString());
+        } else {
+            // File doesn't exist, copy from current scene
+            if (!currentScenePath_.isEmpty()) {
+                qDebug() << "Copying scene structure from:" << currentScenePath_;
+                // TODO: When the possibility to add new robots is implemented, modify this to
+                // get robot data (position, orientation, type, number) from the running simulation
+                // and update the new YAML file with the current robot states instead of copying
+                // from the source file
+                root = YAML::LoadFile(currentScenePath_.toStdString());
+            } else {
+                // No current scene, create minimal structure
+                qDebug() << "No current scene, creating minimal YAML structure";
+                root["field"] = "fieldRCAP";
+                root["ball"]["position"] = YAML::Node(YAML::NodeType::Sequence);
+                root["ball"]["position"].push_back(0.0);
+                root["ball"]["position"].push_back(0.0);
+                root["ball"]["position"].push_back(0.12);
+                root["teams"] = YAML::Node(YAML::NodeType::Map);
+            }
+        }
+
+        // Update gui_config section (always update regardless of whether file existed)
+        if (!root["gui_config"]) {
+            root["gui_config"] = YAML::Node(YAML::NodeType::Sequence);
+        }
+
+        // Ensure gui_config has at least 2 elements
+        while (root["gui_config"].size() < 2) {
+            root["gui_config"].push_back(YAML::Node(YAML::NodeType::Map));
+        }
+
+        // Update tools_panel dimensions in the first element
+        YAML::Node toolsPanelDims(YAML::NodeType::Sequence);
+        toolsPanelDims.push_back(numRows);
+        toolsPanelDims.push_back(numColumns);
+        root["gui_config"][0]["tools_panel"] = toolsPanelDims;
+
+        // Update cell_data in the second element
+        YAML::Node cellDataNode(YAML::NodeType::Sequence);
+        for (const QVariant& cellVariant : cellData) {
+            QVariantMap cellMap = cellVariant.toMap();
+
+            YAML::Node cellNode;
+            YAML::Node cellCoords(YAML::NodeType::Sequence);
+            cellCoords.push_back(cellMap["row"].toInt());
+            cellCoords.push_back(cellMap["column"].toInt());
+
+            cellNode["cell"] = cellCoords;
+            cellNode["stream"] = cellMap["stream"].toString().toStdString();
+
+            cellDataNode.push_back(cellNode);
+        }
+
+        root["gui_config"][1]["cell_data"] = cellDataNode;
+
+        // Write back to file
+        std::ofstream fout(yamlFile.toStdString());
+        fout << root;
+        fout.close();
+
+        qDebug() << "GUI config saved successfully";
+    } catch (const std::exception& e) {
+        qWarning() << "Error saving GUI config:" << e.what();
     }
 }
 

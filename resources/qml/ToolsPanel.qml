@@ -725,14 +725,27 @@ Rectangle {
                                                         if (cellWrapper.hasData) {
                                                             var data = cellWrapper.data
                                                             if (data && data.x !== undefined) {
+                                                                // Determine labels based on stream type
+                                                                var label1 = "X"
+                                                                var label2 = "Y"
+                                                                var label3 = "Z"
+                                                                if (dataStreamCombo.selectedStream.indexOf("Angular Velocity") >= 0 ||
+                                                                    dataStreamCombo.selectedStream.indexOf("Orientation") >= 0) {
+                                                                    label1 = "R"
+                                                                    label2 = "P"
+                                                                    label3 = "Y"
+                                                                }
+
                                                                 // If height is small, show on one line
                                                                 if (parent.height < 55) {
-                                                                    return "X:" + data.x.toFixed(3) + " Y:" + data.y.toFixed(3) + " Z:" + data.z.toFixed(3)
+                                                                    return label1 + ":" + data.x.toFixed(3) + " " +
+                                                                           label2 + ":" + data.y.toFixed(3) + " " +
+                                                                           label3 + ":" + data.z.toFixed(3)
                                                                 } else {
                                                                     // Show on three lines when there's space
-                                                                    return "X: " + data.x.toFixed(4) + "\n" +
-                                                                           "Y: " + data.y.toFixed(4) + "\n" +
-                                                                           "Z: " + data.z.toFixed(4)
+                                                                    return label1 + ": " + data.x.toFixed(4) + "\n" +
+                                                                           label2 + ": " + data.y.toFixed(4) + "\n" +
+                                                                           label3 + ": " + data.z.toFixed(4)
                                                                 }
                                                             }
                                                         }
@@ -791,19 +804,31 @@ Rectangle {
                                                         if (item) {
                                                             item.title = dataStreamCombo.selectedStream
                                                             console.log("Setting plot title:", dataStreamCombo.selectedStream)
-                                                            // Adjust min/max based on stream type
+                                                            // Adjust min/max and labels based on stream type
                                                             if (dataStreamCombo.selectedStream.indexOf("IMU Linear Acceleration") >= 0) {
                                                                 item.minValue = -20.0
                                                                 item.maxValue = 20.0
+                                                                item.xAxisLabel = "X"
+                                                                item.yAxisLabel = "Y"
+                                                                item.zAxisLabel = "Z"
                                                             } else if (dataStreamCombo.selectedStream.indexOf("IMU Angular Velocity") >= 0) {
                                                                 item.minValue = -10.0
                                                                 item.maxValue = 10.0
+                                                                item.xAxisLabel = "roll"
+                                                                item.yAxisLabel = "pitch"
+                                                                item.zAxisLabel = "yaw"
                                                             } else if (dataStreamCombo.selectedStream.indexOf("Pose Position") >= 0) {
                                                                 item.minValue = -5.0
                                                                 item.maxValue = 5.0
+                                                                item.xAxisLabel = "X"
+                                                                item.yAxisLabel = "Y"
+                                                                item.zAxisLabel = "Z"
                                                             } else if (dataStreamCombo.selectedStream.indexOf("Pose Orientation") >= 0) {
                                                                 item.minValue = -3.5
                                                                 item.maxValue = 3.5
+                                                                item.xAxisLabel = "roll"
+                                                                item.yAxisLabel = "pitch"
+                                                                item.zAxisLabel = "yaw"
                                                             }
                                                         }
                                                     }
@@ -811,7 +836,37 @@ Rectangle {
                                                     Connections {
                                                         target: dataStreamCombo
                                                         function onSelectedStreamChanged() {
-                                                            plotLoader.sourceComponent = plotLoader.sourceComponent
+                                                            if (plotLoader.item) {
+                                                                plotLoader.item.title = dataStreamCombo.selectedStream
+                                                                // Update labels and ranges based on stream type
+                                                                if (dataStreamCombo.selectedStream.indexOf("IMU Linear Acceleration") >= 0) {
+                                                                    plotLoader.item.minValue = -20.0
+                                                                    plotLoader.item.maxValue = 20.0
+                                                                    plotLoader.item.xAxisLabel = "X"
+                                                                    plotLoader.item.yAxisLabel = "Y"
+                                                                    plotLoader.item.zAxisLabel = "Z"
+                                                                } else if (dataStreamCombo.selectedStream.indexOf("IMU Angular Velocity") >= 0) {
+                                                                    plotLoader.item.minValue = -10.0
+                                                                    plotLoader.item.maxValue = 10.0
+                                                                    plotLoader.item.xAxisLabel = "roll"
+                                                                    plotLoader.item.yAxisLabel = "pitch"
+                                                                    plotLoader.item.zAxisLabel = "yaw"
+                                                                } else if (dataStreamCombo.selectedStream.indexOf("Pose Position") >= 0) {
+                                                                    plotLoader.item.minValue = -5.0
+                                                                    plotLoader.item.maxValue = 5.0
+                                                                    plotLoader.item.xAxisLabel = "X"
+                                                                    plotLoader.item.yAxisLabel = "Y"
+                                                                    plotLoader.item.zAxisLabel = "Z"
+                                                                } else if (dataStreamCombo.selectedStream.indexOf("Pose Orientation") >= 0) {
+                                                                    plotLoader.item.minValue = -3.5
+                                                                    plotLoader.item.maxValue = 3.5
+                                                                    plotLoader.item.xAxisLabel = "roll"
+                                                                    plotLoader.item.yAxisLabel = "pitch"
+                                                                    plotLoader.item.zAxisLabel = "yaw"
+                                                                }
+                                                                // Clear old data when switching streams
+                                                                plotLoader.item.clearData()
+                                                            }
                                                         }
                                                     }
 

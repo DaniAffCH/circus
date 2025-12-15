@@ -38,6 +38,9 @@ void SimulationViewport::paintGL() {
 
     mjrRect viewport = {0, 0, width, height};
     mjr_setBuffer(mjFB_WINDOW, context);
+
+    DebugDrawings::drawDebugDrawings();
+
     mjr_render(viewport, scene, context);
     mjv_updateScene(model, data, opt, nullptr, cam, mjCAT_ALL, scene);
 }

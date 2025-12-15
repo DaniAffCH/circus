@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "Constants.h"
+#include "DebugDrawings.h"
 #include "MujocoContext.h"
 #include "robots/BoosterK1.h"
 #include "robots/BoosterT1.h"
@@ -149,6 +150,7 @@ class RobotManager {
     RobotManager& operator=(const RobotManager&) = delete;
 
     void _serverInternal(int port) {
+        std::cout << "Starting RobotManager communication server on port " << port << std::endl;
         int server_fd = socket(AF_INET, SOCK_STREAM, 0);
         if (server_fd < 0)
             throw std::runtime_error("Failed to create socket");
@@ -201,7 +203,9 @@ class RobotManager {
                         msgpack::object_handle oh = msgpack::unpack(buffer, n);
                         auto data_map = oh.get().as<std::map<std::string, msgpack::object>>();
                         auto it = data_map.find("robot_name");
-                        if (it == data_map.end())
+                        auto it_debug = data_map.find("drawGeomType");
+
+                        if (it == data_map.end() && it_debug == data_map.end())
                             continue;
 
                         std::string messageRecipient = it->second.as<std::string>();
@@ -210,6 +214,10 @@ class RobotManager {
                         for (auto& r : robots_) {
                             if (r->name == messageRecipient) {
                                 r->receiveMessage(data_map);
+
+                                if (it_debug != data_map.end())
+                                    DebugDrawings::processDebugMessage(data_map);
+
                                 auto answ = r->sendMessage();
                                 msgpack::sbuffer sbuf;
                                 msgpack::pack(sbuf, answ);

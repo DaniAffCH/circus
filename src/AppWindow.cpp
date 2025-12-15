@@ -16,6 +16,7 @@ AppWindow::AppWindow(int& argc, char** argv) {
     std::signal(SIGTERM, signalHandler);
     std::signal(SIGINT, signalHandler);
     std::signal(SIGSEGV, signalHandler);
+    std::signal(SIGSEGV, signalHandler);
     std::signal(SIGABRT, signalHandler);
 
     resize(spqr::initialWindowWidth, spqr::initialWindowHeight);
@@ -82,6 +83,9 @@ void AppWindow::loadScene(const QString& yamlFile) {
 
         sim = std::make_unique<SimulationThread>(mujContext->model, mujContext->data);
         sim->start();
+
+        DebugDrawings::init(&(mujContext->scene));
+
     } catch (const std::exception& e) {
         QMessageBox::critical(this, "Error loading scene", e.what());
     }
